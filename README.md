@@ -1,13 +1,20 @@
 # Rogue Valley Ponds & Handyman
 
-Website for Robert's veteran-owned pond, water feature, koi and handyman business in Grants Pass, Oregon (est. 2021).
+Website for Robert's veteran-owned pond, water feature, koi and handyman business in Grants Pass, Oregon (est. 2021). Built on the v3 identity: the koi badge's colors set on black (Nocturne design system, Inter).
 
 | Path | What it is |
 | --- | --- |
-| `site/` | The landing page: `index.html`, `styles.css`, `app.js`, `config.js` (Supabase settings and phone), `assets/` (logo and icons) |
+| `site/index.html` | Landing page: animated koi badge, pond and handyman services, recent work, pond year, how it works, service area |
+| `site/quote.html` | Request a Quote. `quote.html?job=pond\|water-feature\|pond-care\|koi\|handyman\|not-sure` preselects the job type |
+| `site/assets/css/` | `nocturne.css` (design system), `site.css` (identity and layout), `icons.css` (Phosphor subset) |
+| `site/assets/js/` | `config.js` (Supabase settings and phone), `site.js` (phone links, photos, animated badge, pond year), `quote.js` (the form) |
+| `site/assets/photos/` | Job and koi photos, resized to 1600px max |
+| `site/assets/img/`, `site/assets/video/` | Logo still, animated badge (MP4 + WebM), favicon |
 | `supabase/migrations/` | Database for quote requests |
-| `scripts/build_share.py` | Builds `share/rogue-valley-ponds.html`, the whole page as one file |
+| `scripts/build_share.py` | Builds `share/rogue-valley-ponds.html`, the landing page as one file |
 | `share/` | The single-file page, for sending or uploading |
+
+No build step. Host the `site/` folder on any static host (Netlify, Cloudflare Pages, GitHub Pages).
 
 ## Quote requests
 
@@ -17,13 +24,15 @@ The page's publishable key can only submit a request through `submit_quote_reque
 
 ## Editing
 
-- Phone and Supabase settings: `site/config.js`
+- Phone and Supabase settings: `site/assets/js/config.js`
 - Services, service area and wording: `site/index.html`
-- Pond calendar months and tips: the "pond year" section in `site/index.html` and `SEASON_TEXT` in `site/app.js`
+- Pond calendar months and tips: the "pond year" section in `site/index.html` and `SEASON_TEXT` in `site/assets/js/site.js`
+- Photos: replace a file in `site/assets/photos/` with the same name. If one is missing, its slot shows a labeled placeholder instead of a broken image.
+- Icons: `icons.css` holds only the icons in use. To add one, copy its rule from [Phosphor](https://phosphoricons.com) (`@phosphor-icons/web` 2.1.1, regular).
 
-Run `python3 scripts/build_share.py` after changes to refresh the single-file page.
+Run `python3 scripts/build_share.py` after changes to refresh the single-file page. That copy shows the still badge instead of the animation.
 
 ## Still to confirm
 
 - The services list and service-area towns are typical placeholders; edit them to what Robert actually does.
-- No public web address yet; Facebook link previews need one (see the comment in `site/index.html`).
+- No public web address yet; Facebook link previews need one for `og:image`.
