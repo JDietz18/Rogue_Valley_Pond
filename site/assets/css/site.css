@@ -50,7 +50,7 @@
   --gutter: clamp(16px, 4vw, 48px);
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
 body { background: #000; color: var(--rv-cream); font-size: 16px; -webkit-font-smoothing: antialiased; }
 a { color: var(--rv-brass); }
@@ -102,10 +102,11 @@ a:hover { color: var(--color-accent-2-200); }
 }
 .site-header::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px;
   background: linear-gradient(90deg, transparent, var(--color-divider) 48px, var(--color-divider) calc(100% - 48px), transparent); }
-.site-header .nav { max-width: var(--wrap); margin: 0 auto; padding: 12px var(--gutter); gap: 18px; }
+.site-header .nav { max-width: var(--wrap); margin: 0 auto; padding: 8px var(--gutter); gap: 18px; }
 .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: var(--rv-cream); margin-right: auto; }
 .brand:hover { color: var(--rv-cream); }
 .brand .mark { width: 38px; height: 38px; flex: none; }
+.brand-badge { display: block; width: auto; height: 56px; flex: none; }
 .brand-name { display: flex; flex-direction: column; gap: 3px; }
 .brand-name b { font-weight: 500; font-size: 18px; letter-spacing: -.01em; line-height: 1; white-space: nowrap; }
 .brand-name small { font-weight: 500; font-size: 9px; letter-spacing: .22em; text-transform: uppercase; color: var(--rv-brass); white-space: nowrap; }
@@ -116,6 +117,7 @@ a:hover { color: var(--color-accent-2-200); }
 .nav .btn-primary { color: var(--rv-red); }
 .nav-toggle { display: none; }
 @media (max-width: 960px) { .nav-links, .nav .phone-link { display: none; } }
+@media (max-width: 600px) { .brand-badge { height: 46px; } }
 @media (max-width: 420px) { .brand-name small { display: none; } .nav .btn { padding: 8px 12px; font-size: 14px; } }
 
 /* ── line mark (small-size logo) ──────────────────────── */
