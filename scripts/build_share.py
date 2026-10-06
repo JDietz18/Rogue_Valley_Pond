@@ -19,8 +19,8 @@ SITE = ROOT / "site"
 OUT = ROOT / "share" / "rogue-valley-ponds.html"
 
 
-def data_uri(rel: str) -> str:
-    path = SITE / rel
+def data_uri(rel: str, base: Path = SITE) -> str:
+    path = (base / rel).resolve()
     mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
     return f"data:{mime};base64,{base64.b64encode(path.read_bytes()).decode()}"
 
@@ -35,11 +35,22 @@ def build():
     meta += f'\n<link rel="icon" href="{data_uri(re.search(r"<link rel=\"icon\" href=\"([^\"]+)\"", head).group(1))}">'
     links = re.findall(r'<link rel="stylesheet" href="([^"]+)">', head)
     fonts = "\n".join(f'<link rel="stylesheet" href="{h}">' for h in links if h.startswith("https://"))
-    styles = "\n".join(f"<style>\n{(SITE / h).read_text()}\n</style>" for h in links if not h.startswith("https://"))
-    styles = re.sub(r"url\((assets/[^)]+)\)", lambda m: f'url("{data_uri(m.group(1))}")', styles)
+    def inline_css(h: str) -> str:
+        css = (SITE / h).read_text()
+        # url(...) inside a stylesheet is relative to that stylesheet's folder
+        css = re.sub(r'url\("?((?:\.\./|assets/)[^")]+)"?\)', lambda m: f'url("{data_uri(m.group(1), (SITE / h).parent)}")', css)
+        return f"<style>\n{css}\n</style>"
+    styles = "\n".join(inline_css(h) for h in links if not h.startswith("https://"))
     # Scripts go at the end of the body, in order, so the DOM exists when they run.
-    scripts = "\n".join(f"<script>\n{(SITE / s).read_text()}\n</script>" for s in re.findall(r'<script src="([^"]+)"', head))
+    srcs = re.findall(r'<script src="([^"]+)"></script>', html)
+    body = re.sub(r'\s*<script src="[^"]+"></script>', "", body)
+    scripts = "\n".join(f"<script>\n{(SITE / s).read_text()}\n</script>" for s in srcs)
     body = re.sub(r'(<img[^>]*?\ssrc=")(assets/[^"]+)"', lambda m: f'{m.group(1)}{data_uri(m.group(2))}"', body)
+    # srcset variants and the animated badge's video stay out of the single file: the
+    # inlined still poster is shown instead, and links to quote.html need the hosted site.
+    body = re.sub(r'\ssrcset="[^"]*"', "", body)
+    body = re.sub(r'<video[^>]*></video>\s*', "", body)
+    body = re.sub(r'<button class="badge-toggle"[^>]*>.*?</button>\s*', "", body, flags=re.S)
     return title, meta, fonts + "\n" + styles, body.strip() + "\n" + scripts
 
 

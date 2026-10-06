@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Rogue Valley Ponds &amp; Handyman">
-  <circle cx="32" cy="32" r="30" fill="#18292b"/>
-  <path d="M6 36 L20 20 L27 27 L37 14 L58 36 Z" fill="#7da34a"/>
-  <path d="M14 42 Q32 36 50 42" fill="none" stroke="#7fd0c8" stroke-width="3.2" stroke-linecap="round"/>
-  <path d="M19 49 Q32 45 45 49" fill="none" stroke="#7fd0c8" stroke-width="3.2" stroke-linecap="round" opacity=".75"/>
-  <path d="M25 55 Q32 53 39 55" fill="none" stroke="#7fd0c8" stroke-width="3.2" stroke-linecap="round" opacity=".5"/>
-</svg>

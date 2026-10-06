@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Request a quote · Rogue Valley Ponds &amp; Handyman</title>
+<meta name="description" content="Tell Robert about your pond, water feature, koi or handyman job. He reads every request himself and calls back with a quote. Or call or text 541-761-6681.">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="assets/css/nocturne.css">
+<link rel="stylesheet" href="assets/css/icons.css">
+<link rel="stylesheet" href="assets/css/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to the form</a>
+
+<header class="site-header">
+  <nav class="nav" aria-label="Main">
+    <a class="brand" href="index.html" aria-label="Rogue Valley Ponds &amp; Handyman, home">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><circle class="w" cx="32" cy="32" r="29"/><circle class="s" cx="43" cy="19.5" r="4.5"/><path class="h" d="M5 39 C11 30 18 27 25 31.5 C33 23 45 23 59 39"/><path class="w" d="M15 46 Q32 42 49 46"/><path class="w" d="M22 52 Q32 49.5 42 52" opacity=".6"/></svg>
+      <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
+    </a>
+    <div class="nav-links">
+      <a href="index.html#ponds">Ponds</a>
+      <a href="index.html#handyman">Handyman</a>
+      <a href="index.html#work">Recent work</a>
+      <a href="index.html#year">Pond year</a>
+      <a href="index.html#area">Service area</a>
+    </div>
+    <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>
+    <a class="btn btn-primary" href="quote.html" aria-current="page">Get a quote</a>
+  </nav>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="wrap" style="display:flex;flex-direction:column;gap:clamp(28px,4vw,44px)">
+      <div class="head">
+        <span class="eyebrow">Get a quote</span>
+        <h1 class="display" style="font-size:clamp(34px,5vw,56px)">Tell Robert about the job</h1>
+        <p class="lead">He reads every request himself and calls back to talk it through. Prefer to talk now? Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>.</p>
+      </div>
+
+      <div class="quote-grid">
+        <div class="panel">
+          <form id="quote-form" class="quote-form" novalidate>
+            <fieldset class="wide">
+              <legend class="legend">What’s the job?</legend>
+              <div class="chips" role="radiogroup">
+                <label class="chip"><input type="radio" name="job" value="pond" required><span><i class="ph ph-shovel" aria-hidden="true"></i>New pond or remodel</span></label>
+                <label class="chip"><input type="radio" name="job" value="water-feature"><span><i class="ph ph-waves" aria-hidden="true"></i>Waterfall or fountain</span></label>
+                <label class="chip"><input type="radio" name="job" value="pond-care"><span><i class="ph ph-broom" aria-hidden="true"></i>Pond cleaning or repair</span></label>
+                <label class="chip"><input type="radio" name="job" value="koi"><span><i class="ph ph-fish" aria-hidden="true"></i>Koi or fish care</span></label>
+                <label class="chip"><input type="radio" name="job" value="handyman"><span><i class="ph ph-hammer" aria-hidden="true"></i>Handyman work</span></label>
+                <label class="chip"><input type="radio" name="job" value="not-sure"><span><i class="ph ph-question" aria-hidden="true"></i>Not sure</span></label>
+              </div>
+            </fieldset>
+            <div class="field wide">
+              <label for="q-details">Describe it</label>
+              <textarea class="input" id="q-details" name="details" rows="5" maxlength="2000" required placeholder="e.g. 10×12 ft pond, pump stopped last week and the water is turning green. About 20 goldfish."></textarea>
+            </div>
+            <div class="field"><label for="q-name">Your name</label><input class="input" id="q-name" name="name" autocomplete="name" maxlength="120" required></div>
+            <div class="field"><label for="q-phone">Phone</label><input class="input" id="q-phone" name="phone" type="tel" autocomplete="tel" minlength="7" maxlength="30" required></div>
+            <div class="field"><label for="q-town">Town</label><input class="input" id="q-town" name="town" list="towns" autocomplete="address-level2" maxlength="80"></div>
+            <div class="field">
+              <label for="q-best">Best time to call</label>
+              <select class="input" id="q-best" name="best">
+                <option value="">Any time</option><option>Morning</option><option>Afternoon</option><option>Evening</option>
+              </select>
+            </div>
+            <div class="field wide"><label for="q-email">Email <span class="opt">optional</span></label><input class="input" id="q-email" name="email" type="email" autocomplete="email" maxlength="200"></div>
+            <datalist id="towns">
+              <option value="Grants Pass"><option value="Merlin"><option value="Murphy"><option value="Wilderville"><option value="Williams"><option value="Cave Junction"><option value="Rogue River"><option value="Gold Hill"><option value="Central Point"><option value="Medford">
+            </datalist>
+            <p class="form-error wide" id="form-error" role="alert" hidden></p>
+            <div class="form-actions wide">
+              <button class="btn btn-primary btn-lg" type="submit" id="q-submit">Send request</button>
+              <span class="small">Have photos? Text them to <a class="js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a> after you send this.</span>
+            </div>
+          </form>
+
+          <div class="state" id="quote-done" tabindex="-1" hidden>
+            <i class="ph ph-check-circle ok" aria-hidden="true"></i>
+            <span class="eyebrow">Request sent</span>
+            <h2 class="h2" id="done-title">Thanks. Robert will call you.</h2>
+            <p class="body">Have photos of the job? Text them to <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a> with your name, so he can see it before he calls.</p>
+            <div class="cta-row"><button type="button" class="btn btn-secondary" id="quote-again">Send another request</button><a class="btn btn-ghost" href="index.html">Back to the home page</a></div>
+          </div>
+
+          <div class="state" id="quote-fallback" tabindex="-1" hidden>
+            <span class="eyebrow" style="color:var(--rv-red)">Couldn’t send from here</span>
+            <h2 class="h2">Call or text Robert instead</h2>
+            <a class="phone-link js-phone-link" href="tel:5417616681" style="font-size:28px"><span class="js-phone">541-761-6681</span></a>
+            <p class="body">Your message is still in the form. Copy it to paste into a text.</p>
+            <div class="cta-row"><button type="button" class="btn btn-primary" id="copy-request">Copy my request</button><button type="button" class="btn btn-secondary" id="fallback-back">Back to the form</button></div>
+            <p class="small" id="copy-status" role="status"></p>
+          </div>
+        </div>
+
+        <aside class="aside">
+          <div class="panel call-card">
+            <span class="eyebrow">Call or text</span>
+            <a class="phone-link big js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>
+            <p class="body">Veteran owned · Est. 2021 · Based in Grants Pass, serving Josephine and Jackson counties.</p>
+          </div>
+          <div class="panel">
+            <span class="eyebrow" style="margin-bottom:14px">What happens next</span>
+            <ol class="steps steps-compact">
+              <li><p class="body"><b style="color:var(--rv-cream);font-weight:500">He calls you back</b> to ask the questions that matter: size, access, what’s been tried.</p></li>
+              <li><p class="body"><b style="color:var(--rv-cream);font-weight:500">Visit and written quote</b> for anything bigger than a quick fix.</p></li>
+              <li><p class="body"><b style="color:var(--rv-cream);font-weight:500">The work, then the cleanup</b>, on the agreed day.</p></li>
+            </ol>
+          </div>
+          <figure class="photo lighten" data-slot="koi-fantail-dark.jpg">
+            <img src="assets/photos/koi-fantail-dark.jpg" alt="An orange and white fantail goldfish on a black background" loading="lazy">
+          </figure>
+        </aside>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap" style="display:block"><div class="rule"></div></div>
+  <div class="wrap">
+    <a class="brand" href="index.html" style="margin-right:0">
+      <svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><circle class="w" cx="32" cy="32" r="29"/><circle class="s" cx="43" cy="19.5" r="4.5"/><path class="h" d="M5 39 C11 30 18 27 25 31.5 C33 23 45 23 59 39"/><path class="w" d="M15 46 Q32 42 49 46"/><path class="w" d="M22 52 Q32 49.5 42 52" opacity=".6"/></svg>
+      <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
+    </a>
+    <p class="small" style="margin:0"><span>Veteran owned</span><span>Est. 2021</span><span>Grants Pass, Oregon</span><span><a href="https://www.facebook.com/profile.php?id=61560373865806" rel="noopener">Facebook</a></span></p>
+    <p class="small" style="margin:0">© <span class="js-year">2026</span> Rogue Valley Ponds &amp; Handyman</p>
+  </div>
+</footer>
+
+<script src="assets/js/config.js"></script>
+<script src="assets/js/site.js"></script>
+<script src="assets/js/quote.js"></script>
+</body>
+</html>
