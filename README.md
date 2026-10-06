@@ -9,7 +9,8 @@ Website for Robert's veteran-owned pond, water feature, koi and handyman busines
 | `site/assets/css/` | `nocturne.css` (design system), `site.css` (identity and layout), `icons.css` (Phosphor subset) |
 | `site/assets/js/` | `config.js` (Supabase settings and phone), `site.js` (phone links, photos, animated badge, pond year), `quote.js` (the form) |
 | `site/assets/photos/` | Job and koi photos, resized to 1600px max |
-| `site/assets/img/`, `site/assets/video/` | Logo still, animated badge (MP4 + WebM), favicon |
+| `site/assets/img/`, `site/assets/video/` | Koi badge for the header and footer (`rvph-badge-*.webp`), browser-tab and home-screen icons, link-preview image (`og-image.jpg`), animated badge (MP4 + WebM) |
+| `site/favicon.ico` | Tab icon for browsers that look for it at the site root |
 | `supabase/migrations/` | Database for quote requests |
 | `scripts/build_share.py` | Builds `share/rogue-valley-ponds.html`, the landing page as one file |
 | `share/` | The single-file page, for sending or uploading |
@@ -24,6 +25,7 @@ The page's publishable key can only submit a request through `submit_quote_reque
 
 ## Editing
 
+- Logo: every badge image is rendered from the high-detail vector (`Rogue_Valley_High_Detail_Vector_v2.svg`, kept outside the repo; it is 65 MB). Re-render from it if the logo changes.
 - Phone and Supabase settings: `site/assets/js/config.js`
 - Services, service area and wording: `site/index.html`
 - Pond calendar months and tips: the "pond year" section in `site/index.html` and `SEASON_TEXT` in `site/assets/js/site.js`
@@ -35,4 +37,4 @@ Run `python3 scripts/build_share.py` after changes to refresh the single-file pa
 ## Still to confirm
 
 - The services list and service-area towns are typical placeholders; edit them to what Robert actually does.
-- No public web address yet; Facebook link previews need one for `og:image`.
+- No public web address yet. Facebook link previews need `og:image` to be a full URL (e.g. `https://example.com/assets/img/og-image.jpg`) once the site has one.
