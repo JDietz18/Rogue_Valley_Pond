@@ -1,6 +1,6 @@
 # Rogue Valley Ponds & Handyman
 
-Website for Robert's veteran-owned pond, water feature, koi and handyman business in Grants Pass, Oregon (est. 2021). Built on the v3 identity: the koi badge's colors set on black (Nocturne design system, Inter).
+Website for Robert's veteran-owned pond, water feature, koi and handyman business in Grants Pass, Oregon (est. 2021). Built on the v3 identity: the koi badge's colors set on black (Nocturne design system), with Big Shoulders Display for headlines, Big Shoulders Stencil Display for the veteran labels and numbers, and Inter for running text.
 
 | Path | What it is |
 | --- | --- |
@@ -16,6 +16,12 @@ Website for Robert's veteran-owned pond, water feature, koi and handyman busines
 | `share/` | The single-file page, for sending or uploading |
 
 No build step. Host the `site/` folder on any static host (Netlify, Cloudflare Pages, GitHub Pages).
+
+## Type, veteran theme and motion
+
+- Fonts load from one Google Fonts link in each page's `<head>`; `site.css` names them `--font-display`, `--font-stencil` and `--font-body`.
+- Veteran presence: the service ribbon above the header (both pages), the stencil "Veteran owned & operated" line in the hero and on the quote page, the "A veteran's word, in writing" section after the hero (`#veteran`), stencil step numbers, and the rotating seal in the footer. Colors stay the logo's own: red, cream, Pond Blue, brass stars.
+- Motion only runs with JavaScript on and never under "reduce motion". A one-line script in each `<head>` adds `js` to `<html>`; `site.js` adds `is-ready` when the page is up, which plays the hero entrance. Section heads, the four commitments and the steps reveal as they scroll in (browsers without scroll timelines show them straight away). Without JavaScript everything is simply visible.
 
 ## Quote requests
 

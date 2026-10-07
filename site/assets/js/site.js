@@ -1,9 +1,43 @@
-// Rogue Valley Ponds & Handyman: shared page behavior — phone links, photo slots,
-// the footer year, and (on the landing page) the pond year marker.
+// Rogue Valley Ponds & Handyman: shared page behavior — the ready flag for the
+// hero entrance, phone links, photo slots, the footer year, and (on the landing
+// page) the pond year marker.
 (() => {
   const cfg = window.RVP_CONFIG || {};
   const phone = cfg.phone || "541-761-6681";
   const tz = cfg.timeZone || "America/Los_Angeles";
+
+  // ── Ready flag ─────────────────────────────────────────────────────────
+  // The hero entrance (site.css, "Motion") plays when <html> gets "is-ready".
+  // With no intro splash, add it once the DOM is in, after a short wait for the
+  // display fonts (at most 350ms) so the headline doesn't reflow mid-entrance.
+  // While the splash runs ("splash-pending"), splash.js adds it at its hand-off;
+  // as a backstop, add it here too when "splash-pending" goes away or the
+  // splash's "rvp:intro-done" event fires.
+  const root = document.documentElement;
+  const onReady = [];
+  let isReady = false;
+  const ready = () => {
+    root.classList.add("is-ready");
+    if (!isReady) { isReady = true; onReady.forEach((f) => f()); }
+  };
+  const fontsIn = () => {
+    try {
+      return Promise.race([
+        Promise.all(['800 64px "Big Shoulders Display"', '800 24px "Big Shoulders Stencil Display"'].map((f) => document.fonts.load(f))),
+        new Promise((r) => setTimeout(r, 350)),
+      ]).catch(() => {});
+    } catch { return Promise.resolve(); }
+  };
+  const armReady = () => {
+    if (!root.classList.contains("splash-pending")) { fontsIn().then(ready); return; }
+    addEventListener("rvp:intro-done", ready, { once: true });
+    const mo = new MutationObserver(() => {
+      if (!root.classList.contains("splash-pending")) { mo.disconnect(); ready(); }
+    });
+    mo.observe(root, { attributes: true, attributeFilter: ["class"] });
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", armReady, { once: true });
+  else armReady();
 
   // ── Phone number everywhere ────────────────────────────────────────────
   for (const el of document.querySelectorAll(".js-phone")) el.textContent = phone;
@@ -21,7 +55,8 @@
 
 
   // ── Animated koi badge: plays muted when on screen, respects reduced motion,
-  //    and falls back to the still poster on any failure ────────────────────
+  //    and falls back to the still poster on any failure. While the intro runs
+  //    it waits (the flying badge lands on the still poster), then starts. ──
   for (const root of document.querySelectorAll("[data-anim-logo]")) {
     const video = root.querySelector("video");
     const toggle = root.querySelector("[data-anim-toggle]");
@@ -35,7 +70,7 @@
     };
     const sync = async () => {
       label();
-      if (failed || !wants || !inView || document.hidden) { video.pause(); return; }
+      if (failed || !wants || !inView || document.hidden || !isReady) { video.pause(); return; }
       if (!video.getAttribute("src")) {
         const small = innerWidth <= 820 || navigator.connection?.saveData;
         const ext = video.canPlayType('video/mp4; codecs="avc1.42E01E"') ? "mp4" : "webm";
@@ -52,6 +87,7 @@
       new IntersectionObserver(([e]) => { inView = e.isIntersecting; sync(); }, { threshold: 0.01 }).observe(root);
     }
     toggle.hidden = false;
+    onReady.push(sync);
     sync();
   }
 
