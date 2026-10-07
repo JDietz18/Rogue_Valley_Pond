@@ -39,6 +39,15 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", armReady, { once: true });
   else armReady();
 
+  // ── Smooth in-page scrolling (site.css, html.smooth) once the page has loaded and its fonts are in,
+  //    so a cold-load jump to a #section lands where the section ends up ──
+  const smooth = () => {
+    const on = () => root.classList.add("smooth");
+    try { document.fonts.ready.then(on, on); } catch { on(); }
+  };
+  if (document.readyState === "complete") smooth();
+  else addEventListener("load", smooth, { once: true });
+
   // ── Phone number everywhere ────────────────────────────────────────────
   for (const el of document.querySelectorAll(".js-phone")) el.textContent = phone;
   for (const a of document.querySelectorAll(".js-phone-link")) a.href = `tel:${phone.replace(/[^\d+]/g, "")}`;

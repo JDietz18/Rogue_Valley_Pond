@@ -1,26 +1,33 @@
-// Rogue Valley Ponds & Handyman: landing intro (styles in splash.css). Runs only if the <head>
-// script set html.splash-pending; builds its own overlay and plays ~2.9s, then the badge flies onto
-// the hero .badge-stage as the colors wipe the overlay away, and <html> gets "is-ready" + window
-// "rvp:intro-done". Skip: the button, any click or tap, Esc / Enter / Space (~250ms).
+// Rogue Valley Ponds & Handyman: landing intro (styles: splash.css). Runs only if the <head> script set
+// html.splash-pending: builds its own overlay, plays ~2.9s, then wipes it away as the badge flies onto the
+// hero .badge-stage; <html> gets "is-ready", window "rvp:intro-done". Skip: button, click/tap, Esc/Enter/Space.
 (() => {
   const root = document.documentElement, body = document.body;
   if (!root.classList.contains("splash-pending")) return;
-  if (!body || !window.KeyframeEffect || matchMedia("(prefers-reduced-motion: reduce)").matches) return root.classList.remove("splash-pending");
-  clearTimeout(window.rvpSplashFailsafe);
+  // no intro without the APIs, under reduced motion, or when the page took over 3s to get here
+  if (!body || !window.KeyframeEffect || matchMedia("(prefers-reduced-motion: reduce)").matches || performance.now() > 3000) {
+    clearTimeout(window.rvpSplashFailsafe);
+    return root.classList.remove("splash-pending"); // site.js adds is-ready
+  }
   try { sessionStorage.setItem("rvp-intro-seen", "1"); } catch (e) {}
 
   // cue sheet (ms)
-  const BURST = 270, BADGE = 430, IMPACT = 661, STAMP = 890, SUB = 1430, GLINT = 1540, EXIT = 2240, FLY = 600, WIPE = 660, FADE = 90;
+  const BURST = 270, BADGE = 430, IMPACT = 661, STAMP = 890, SUB = 1430, GLINT = 1540, EXIT = 2240, FLY = 560, WIPE = 660, FADE = 90;
   const WAIT = 0, RUN = 1, SKIP = 2, LAND = 3, DONE = 4;
-  const vw = () => root.clientWidth || innerWidth, vh = () => root.clientHeight || innerHeight; // layout viewport
+  const vw = () => root.clientWidth || innerWidth, vh = () => root.clientHeight || innerHeight;
   const IW = vw(), IH = vh(), P = IH > IW * 1.15; // portrait layout
-  const DPR = Math.min(devicePixelRatio || 1, 2), FXS = Math.min(DPR, Math.sqrt(2.4e6 / (IW * IH))); // canvas scale, capped near 2.4 MP
-  const me = document.currentScript, base = me && me.src ? new URL("../img/", me.src) : new URL("assets/img/", location.href);
-  const SRC = new URL(`rvph-badge-${Math.min(IW * .8, IH * .56, 520) * DPR > 560 ? 1040 : 520}.webp`, base).href; // as the <head> preload
-  const STAR = "M12 1.3 14.8 9.1 23 9.3 16.5 14.4 18.8 22.3 12 17.6 5.2 22.3 7.5 14.4 1 9.3 9.2 9.1Z";
+  const DPR = Math.min(devicePixelRatio || 1, 2), FXS = Math.min(DPR, Math.sqrt(2.4e6 / (IW * IH))); // canvas scale, ~2.4 MP max
+  const me = document.currentScript, base = new URL(me && me.src ? "../img/" : "assets/img/", me && me.src ? me.src : location.href);
+  // the badge file: the one the <head> preloaded, else by the same rule (its size at rest in layout(), in device px)
+  const pre = document.querySelector('link[rel="preload"][href*="rvph-badge-"]'), bpx = (P ? Math.min(IW * .74, IH * .37, 420) : Math.min(IH * .5, IW * .4, 520)) * DPR;
+  const SRC = pre ? pre.href : new URL(`rvph-badge-${bpx > 700 ? 1040 : 520}.webp`, base).href;
+  const STAR = "M12 1.3 14.8 9.1 23 9.3 16.5 14.4 18.8 22.3 12 17.6 5.2 22.3 7.5 14.4 1 9.3 9.2 9.1Z", TAU = Math.PI * 2;
   const star = `<svg viewBox="0 0 24 24"><path d="${STAR}"/></svg>`;
   const css = (n, o) => { for (const k in o) n.style[k] = typeof o[k] == "number" ? o[k] + "px" : o[k]; };
   const stage = document.querySelector(".hero-badge .badge-stage"), poster = stage && stage.querySelector("img");
+  // every listener comes off by hand in finish() (older browsers ignore an AbortSignal option)
+  const offs = [], on = (t, ev, f, o = false) => { t.addEventListener(ev, f, o); offs.push(() => t.removeEventListener(ev, f, o)); };
+  let state = WAIT, ready = false, inerted = [], L, raf = 0, stars, flight, master, shown, g;
 
   const el = document.createElement("div");
   el.className = P ? "rvs rvs-p" : "rvs";
@@ -40,36 +47,40 @@
   const [win, curtain, shake, field, fx, flare, banner, ink, sub, flash, edge, badge, bshake, punch, img, glint, skipBtn] =
     ["win", "curtain", "shake", "field", "fx", "flare", "banner", "ink", "sub", "flash", "edge", "badge", "bshake", "punch", "punch img", "glint i", "skip"].map((c) => $(".rvs-" + c));
   const bands = el.querySelectorAll(".rvs-band"), words = [...el.querySelectorAll(".rvs-w")];
-  img.src = SRC;
-  el.style.setProperty("--badge", `url("${SRC}")`);
-  el.style.setProperty("--ink", `url(${inkMask()})`);
 
-  body.prepend(el); // first, so focus resumes at the page start afterwards; black until it runs
-  root.classList.add("rvs-live");
-  if (stage) stage.style.opacity = "0"; // the hero badge waits for the flying one to land on it
-  const inerted = [...body.children].filter((n) => n !== el && n.tagName !== "SCRIPT" && !n.hasAttribute("inert"));
-  inerted.forEach((n) => n.setAttribute("inert", ""));
-  skipBtn.focus({ preventScroll: true });
+  try {
+    img.src = SRC;
+    el.style.setProperty("--badge", `url("${SRC}")`);
+    el.style.setProperty("--ink", `url(${inkMask()})`);
+    body.prepend(el); // first, so focus resumes at the page start afterwards; black until it runs
+    root.classList.add("rvs-live");
+    if (stage) stage.style.opacity = "0"; // the hero badge waits for the flying one to land on it
+    inerted = [...body.children].filter((n) => n !== el && n.tagName !== "SCRIPT" && !n.hasAttribute("inert"));
+    inerted.forEach((n) => n.setAttribute("inert", ""));
+    skipBtn.focus({ preventScroll: true });
 
-  let state = WAIT, L, raf = 0, queue = [], stars, flight, master, shown, g;
-  const clock = () => (master && master.currentTime) || 0; // an empty 100s animation on the overlay
-  const at = (t, fn) => { queue.push([t, fn]); queue.sort((a, b) => a[0] - b[0]); };
+    // skip keys; no scrolling underneath; start once the tab is seen, end if it's hidden
+    on(window, "keydown", (e) => { if (/^(Esc|Enter| |Spacebar|Arrow|Page|Home$|End$)/.test(e.key)) { e.preventDefault(); if (/^(Esc|Enter| |Spacebar)/.test(e.key)) skip(); } }, { capture: true });
+    on(window, "resize", () => { if (Math.abs(vw() - IW) > 2 || Math.abs(vh() - IH) > 140) skip(); });
+    on(document, "visibilitychange", () => (document.hidden ? state > WAIT && finish() : go()));
+    on(el, "click", skip);
+    for (const ev of ["wheel", "touchmove"]) on(el, ev, (e) => e.preventDefault(), { passive: false });
+    // a face that turns up mid-intro: refit the lettering to its space
+    if (document.fonts) on(document.fonts, "loadingdone", () => { if (state === RUN && clock() < EXIT) refit(); });
+    // Skip shows once the two faces are in (at most 100ms), so its label doesn't reflow in view. The intro starts
+    // only with the badge decoded: it waits at most 1.2s for it (never past 3.4s from navigation), and without it
+    // takes the skip path straight to the page. Decode the hero poster too.
+    const faces = document.fonts ? ['900 100px "Big Shoulders Stencil Display"', '800 15px "Big Shoulders Display"'].map((f) => document.fonts.load(f)) : [];
+    if (poster && poster.decode) poster.decode().catch(() => {});
+    const armed = Promise.race([Promise.all(faces).catch(() => {}), new Promise((r) => setTimeout(r, 100))]).then(() => el.classList.add("rvs-armed"));
+    const badgeIn = img.decode ? img.decode() : new Promise((res, rej) => { img.onload = res; img.onerror = rej; });
+    Promise.all([armed, badgeIn]).then(() => { ready = true; go(); }, () => skip());
+    setTimeout(() => ready || skip(), Math.max(300, Math.min(1200, 3400 - performance.now())));
+    clearTimeout(window.rvpSplashFailsafe); // from here on, finish() brings the page back
+  } catch (e) { finish(); }
 
-  // input: skip; no scrolling underneath; start once the tab is seen, stop if it's hidden
-  const ac = new AbortController(), on = (t, ev, f, o) => t.addEventListener(ev, f, Object.assign({ signal: ac.signal }, o));
-  let ready = false;
-  const go = () => { if (ready && !document.hidden && state === WAIT) try { start(); } catch (e) { finish(); } }; // never leave the cover up
-  on(window, "keydown", (e) => { if (/^(Esc|Enter| |Spacebar|Arrow|Page|Home$|End$)/.test(e.key)) { e.preventDefault(); if (/^(Esc|Enter| |Spacebar)/.test(e.key)) skip(); } }, { capture: true });
-  on(window, "resize", () => { if (Math.abs(vw() - IW) > 2 || Math.abs(vh() - IH) > 140) skip(); });
-  on(document, "visibilitychange", () => (document.hidden ? state > WAIT && finish() : go()));
-  on(el, "click", skip);
-  for (const ev of ["wheel", "touchmove"]) on(el, ev, (e) => e.preventDefault(), { passive: false });
-  // a font that turns up mid-intro: refit the lettering to the space it was given
-  if (document.fonts) on(document.fonts, "loadingdone", () => { if (state === RUN && clock() < EXIT) refit(); });
-  // wait at most 100ms (both are preloaded) for the badge and the stencil face; decode the hero poster too
-  const fonts = document.fonts && document.fonts.load('900 100px "Big Shoulders Stencil Display"');
-  if (poster && poster.decode) poster.decode().catch(() => {});
-  Promise.race([Promise.all([fonts, img.decode && img.decode()]).catch(() => {}), new Promise((r) => setTimeout(r, 100))]).then(() => { ready = true; go(); });
+  function go() { if (ready && !document.hidden && state === WAIT) try { start(); } catch (e) { finish(); } }
+  function clock() { return (master && master.currentTime) || 0; } // an empty 100s animation on the overlay
 
   // layout: everything sized from the viewport
   function layout() {
@@ -98,7 +109,7 @@
     let o = size(1);
     if (o.comp > avail) o = size(avail / o.comp);
     const top = padT + (avail - o.comp) / 2, cx = W / 2, cy = top + o.B / 2, bw = o.B, bh = o.B * 520 / 531, bW = W * (P ? 1.35 : 1.2);
-    const R = Math.hypot(W, H) / 2, R0 = R + 2, S = Math.max(W, H) * .2;
+    const R = Math.hypot(W, H) / 2, a = (P ? 76 : 196) * TAU / 360, ext = W / 2 * Math.abs(Math.cos(a)) + H / 2 * Math.abs(Math.sin(a));
     css(banner, { left: cx - bW / 2, top: top + o.B - o.ov, width: bW, transform: `rotate(${P ? -7 : -5}deg)` });
     css(bands[0], { height: o.Hr });
     css(bands[1], { height: o.Hc, marginTop: o.gap });
@@ -111,14 +122,15 @@
     place(field, Math.min(R * 1.5, o.B * 3.4));
     place(flare, o.B * .9);
     place(flash, o.B * 1.6);
-    // the wipe window (see splash.css)
-    [.4, .18, .42].forEach((f, i) => css(edge.children[i], { width: S * f }));
-    css(win, { left: W / 2, top: H / 2 - R0, width: 2 * R0 + S, height: 2 * R0 });
-    css(curtain, { left: -W / 2, top: R0 - H / 2, width: W, height: H });
-    [win.style.transform, curtain.style.transform] = wipe(-R0 - S);
+    // the wipe window gets its wipe box now: changing its box at the wipe would count as a layout shift, so the
+    // wipe only swaps transforms. Until then it sits flat over the viewport (a turned clip is costly to draw),
+    // shifted left by W/2, and the curtain in it shifted back
+    const S = Math.max(W, H) * .2, R0 = R + 2;
+    css(win, { left: W / 2, top: H / 2 - R0, width: 2 * R0 + S, height: 2 * R0, transform: `translateX(${-W / 2}px)` });
+    css(curtain, { left: -W / 2, top: R0 - H / 2, width: W, height: H, transform: `translateX(${W / 2}px)` });
     fx.width = Math.round(W * FXS);
     fx.height = Math.round(H * FXS);
-    return Object.assign(o, { W, H, cx, cy, bw, bh, R, Wt, e0: -R0 - S, e1: R0 + 2 });
+    return Object.assign(o, { W, H, cx, cy, bw, bh, R, Wt, ext, S });
   }
   // the lettering keeps its measured width (and the bands their height) if the face swaps late
   function refit() {
@@ -129,7 +141,8 @@
     } else css(ink, { fontSize: (L.f = Math.min(L.f * L.inkW / w(ink), L.Hb / 1.22)) });
     L.inkW = w(ink);
   }
-  // landscape: sweep from the right (the hero copy side clears last); portrait: from the top
+  // the wipe: a window turned to the sweep (landscape: from the right; portrait: from the top) slides across,
+  // the three stripes on its trailing edge, while the curtain in it counter-moves to stay put
   function wipe(e) {
     const a = P ? 76 : 196;
     return [`rotate(${a}deg) translateX(${e}px)`, `translateX(${-e}px) rotate(${-a}deg)`];
@@ -183,9 +196,16 @@
       { transform: "scale(1.035) rotate(-.4deg)", offset: .78, easing: "ease-in-out" },
       { opacity: 1, transform: "none" },
     ], { duration: 420, delay: BADGE, fill: "both" });
-    // the glow, the lit water and the rays around it open out, then turn slowly
-    a(field, [{ opacity: 0, transform: "rotate(-8deg) scale(.6)", easing: out }, { opacity: 1, transform: "none", offset: .3 }, { opacity: 1, transform: "rotate(16deg) scale(1.04)" }],
-      { duration: EXIT + 700 - IMPACT, delay: IMPACT - 20, fill: "both" });
+    // the glow, lit water and rays open out and turn; they and the stars dim (EXIT - 180 .. EXIT + 20) as the
+    // badge leaves, so the wipe's turned clip has two big layers fewer to draw
+    const fD = EXIT + 40 - IMPACT;
+    a(field, [
+      { opacity: 0, transform: "rotate(-8deg) scale(.6)", easing: out },
+      { opacity: 1, transform: "none", offset: 680 / fD },
+      { opacity: 1, transform: "rotate(9deg) scale(1.03)", offset: (fD - 200) / fD, easing: "ease-in" },
+      { opacity: 0, transform: "rotate(11deg) scale(1.04)" },
+    ], { duration: fD, delay: IMPACT - 20, fill: "backwards" });
+    a(fx, [{ opacity: 1 }, { opacity: 0 }], { duration: 200, delay: EXIT - 180, easing: "ease-in", fill: "forwards" });
     // 4. VETERAN / OWNED & / OPERATED stamp down, each with an ink bloom and a thud
     words.forEach((w, i) => {
       const t = STAMP + i * 160;
@@ -209,7 +229,6 @@
 
     stars = makeStars();
     g = fx.getContext("2d");
-    at(EXIT, exit);
     setTimeout(finish, 5000); // backstop: whatever happens, the page comes back
     raf = requestAnimationFrame(frame);
   }
@@ -219,16 +238,19 @@
     raf = requestAnimationFrame(frame);
     const t = clock();
     try {
-      while (queue.length && t >= queue[0][0]) queue.shift()[1]();
-      if (state === RUN && t < EXIT + 660) draw(t);
+      if (state === RUN && t >= EXIT && !flight) exit();
+      if (state === RUN && t < EXIT + 20) draw(t);
     } catch (e) { finish(); }
   }
 
-  // 7. hand-off: the colors sweep back across, wiping the overlay away, as the badge flies home;
-  //    the wipe clears the hero copy just as the flyer lands, so the headline rises right behind it
+  // 7. hand-off: the colors sweep back, wiping the overlay away as the badge flies home; the hero copy
+  //    clears last, just after the flyer lands, and the headline rises behind it
   function exit() {
     if (state !== RUN) return;
-    const { cx, cy, B } = L, T = target(), w0 = wipe(L.e0), w1 = wipe(L.e1);
+    const { S, ext, cx, cy, B } = L, T = target(), w0 = wipe(-ext - S), w1 = wipe(ext + 1);
+    [win.style.transform, curtain.style.transform] = w0; // transforms only: the boxes were set in layout()
+    [.4, .18, .42].forEach((f, i) => css(edge.children[i], { width: S * f }));
+    el.classList.add("rvs-wipe");
     const o = { duration: WIPE, easing: "cubic-bezier(.45,0,.7,.8)", fill: "forwards" };
     flight = badge.animate([
       { transform: tf(cx, cy, 1, 1, 0), easing: "cubic-bezier(.33,0,.5,1)" },
@@ -254,43 +276,35 @@
     if (stage) stage.style.opacity = ""; // under the opaque flyer, so no cross-fade is needed
     return badge.animate([{ opacity: 1 }, { opacity: 0 }], { duration: FADE, easing: "ease-out", fill: "forwards" }).finished;
   }
-  // fade the hero badge in on the same timeline as the overlay's own animations
-  function reveal(duration, delay = 0) {
-    return (shown = stage && stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration, delay, fill: "both" }));
-  }
 
   // skip: straight to the hand-off end state in ~250ms, however slow the frames are
   function skip() {
-    if (state === WAIT) {
-      state = SKIP;
-      setTimeout(finish, 280);
-      reveal(200);
-      return el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 200, fill: "forwards" }).finished.then(finish);
-    }
-    if (state !== RUN) return;
+    if (state !== WAIT && state !== RUN) return;
+    const run = state === RUN, D = 200, o = { duration: D, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" };
     state = SKIP;
     setTimeout(finish, 280);
-    queue = [];
-    const ps = getComputedStyle(punch), pO = +ps.opacity, pT = ps.transform, bT = getComputedStyle(badge).transform;
+    if (!run) { // not started: fade the black away over the hero badge
+      if (stage) shown = stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: D, fill: "both" });
+      return el.animate([{ opacity: 1 }, { opacity: 0 }], o).finished.then(finish);
+    }
+    const ps = getComputedStyle(punch), pO = +ps.opacity, pT = ps.transform, bT = getComputedStyle(badge).transform, T = target();
     [...badge.getAnimations(), ...punch.getAnimations()].forEach((x) => x.cancel());
     Object.assign(punch.style, { opacity: pO, transform: pT });
     badge.style.transform = bT;
-    const T = target(), D = 200, o = { duration: D, easing: "cubic-bezier(.4,0,.2,1)", fill: "forwards" };
     skipBtn.animate([{ opacity: 1 }, { opacity: 0 }], o);
     if (T && pO > .1) { // straight into place, cross-fading into the hero badge
       badge.animate([{ transform: bT }, { transform: landing(T) }], o);
       punch.animate([{ opacity: pO, transform: pT }, { opacity: 1, transform: "none", offset: .6 }, { opacity: 0, transform: "none" }], o);
     } else punch.animate([{ opacity: pO }, { opacity: 0 }], o);
-    const fade = win.animate([{ opacity: 1 }, { opacity: 0 }], o); // the rest plays on as it fades
-    reveal(D * .6, D * .4);
-    fade.finished.then(finish);
+    if (stage) shown = stage.animate([{ opacity: 0 }, { opacity: 1 }], { duration: D * .6, delay: D * .4, fill: "both" });
+    win.animate([{ opacity: 1 }, { opacity: 0 }], o).finished.then(finish); // the rest plays on as it fades
   }
 
   function finish() {
     if (state === DONE) return;
     state = DONE;
     cancelAnimationFrame(raf);
-    ac.abort();
+    offs.forEach((off) => off());
     el.remove();
     inerted.forEach((n) => n.removeAttribute("inert"));
     if (stage) stage.style.opacity = "";
@@ -306,12 +320,12 @@
   }
 
   // canvas: brass stars (closed-form paths: burst with drag, drift, the impact's shove) and ripples
-  const K = 3.2, TI = (IMPACT - BURST) / 1000, COLORS = ["#e2be7c", "#eb8f08", "#f9eed5"], TAU = Math.PI * 2;
+  const K = 3.2, TI = (IMPACT - BURST) / 1000, COLORS = ["#e2be7c", "#eb8f08", "#f9eed5"];
   const RINGS = [[0, .75, .4, 1.1, 9, .95], [.08, .95, .42, 1.25, 4.5, .8], [.16, 1.05, .45, 1.35, 2.5, .7]]; // delay, life (s), from (B), to (R), width, alpha
-  const pos = (s, u) => {
+  function pos(s, u) {
     const e = 1 - Math.exp(-K * u), v = u - TI, ei = v > 0 ? 1 - Math.exp(-K * v) : 0;
     return [s.x + s.vx * e + s.dx * u + s.ix * ei, s.y + s.vy * e + s.dy * u + s.iy * ei];
-  };
+  }
   function makeStars() {
     const { W, H, cx, cy, B, R } = L, out = [], rnd = Math.random;
     const spr = COLORS.map((c) => {
@@ -327,7 +341,7 @@
       const an = rnd() * TAU, ux = Math.cos(an), uy = Math.sin(an), z = rnd(), r0 = B * .08 * rnd(), dist = R * (.1 + .95 * rnd() ** .75), drift = 6 + 10 * rnd();
       const c = rnd() < .14 ? 1 : rnd() < .16 ? 2 : 0;
       const s = { x: cx + ux * r0, y: cy + uy * r0, vx: ux * dist, vy: uy * dist, dx: ux * drift, dy: uy * drift, ix: 0, iy: 0, img: spr[c], col: COLORS[c],
-        size: (5 + 18 * rnd() ** 2.3) * (P ? .85 : 1) * (.7 + .3 * z), al: .65 + .35 * z, rot: rnd() * 6.28, spin: (rnd() - .5) * 7, tw: 3 + 5 * rnd(), ph: rnd() * 6.28 };
+        size: (5 + 18 * rnd() ** 2.3) * (P ? .85 : 1) * (.7 + .3 * z), al: .65 + .35 * z, rot: rnd() * TAU, spin: (rnd() - .5) * 7, tw: 3 + 5 * rnd(), ph: rnd() * TAU };
       const [qx, qy] = pos(s, TI), d = Math.hypot(qx - cx, qy - cy) || 1, push = B * .4 * Math.max(0, 1 - d / R) / d; // nearer, harder
       s.ix = (qx - cx) * push;
       s.iy = (qy - cy) * push;
@@ -346,9 +360,7 @@
       if (tb < .6) { // streaks while they fly out
         const [x0, y0] = pos(s, Math.max(0, tb - .05));
         g.setTransform(k, 0, 0, k, 0, 0);
-        g.globalAlpha = al * (1 - tb / .6) * .7;
-        g.strokeStyle = s.col;
-        g.lineWidth = Math.max(1, s.size * .16);
+        Object.assign(g, { globalAlpha: al * (1 - tb / .6) * .7, strokeStyle: s.col, lineWidth: Math.max(1, s.size * .16) });
         g.beginPath();
         g.moveTo(x0, y0);
         g.lineTo(x, y);
@@ -365,8 +377,7 @@
       if (p <= 0 || p >= 1) continue;
       const a = (1 - p) ** 1.4 * alpha, w = w0 * (1 - .6 * p) + .75, r = B * r0 + (R * r1 - B * r0) * (1 - (1 - p) ** 3);
       for (const [rr, a0, a1, lw, col] of [[r, 0, TAU, w, `rgba(62,149,186,${a * .85})`], [r - w * .7, 1.04 * Math.PI, 1.96 * Math.PI, Math.max(1, w * .45), `rgba(226,190,124,${a})`]]) {
-        g.lineWidth = lw;
-        g.strokeStyle = col;
+        Object.assign(g, { lineWidth: lw, strokeStyle: col });
         g.beginPath();
         g.arc(cx, cy, Math.max(0, rr), a0, a1);
         g.stroke();
@@ -375,8 +386,8 @@
     g.globalAlpha = 1;
   }
 
-  // drawn once and scaled up as one layer (cheap to turn on the compositor): a Pond Blue glow,
-  // tileable water caustics around the badge (after Dave Hoskins) and the Ripple rays
+  // drawn once and turned as one layer: a Pond Blue glow, tileable water caustics around the badge
+  // (after Dave Hoskins' "Tileable Water Caustic") and the Ripple-blue rays
   function drawField() {
     const n = field.width = field.height = 768, x = field.getContext("2d"), r = n / 2, k = n / parseFloat(field.style.width), pr = Math.round(Math.min(r, L.B * 1.3 * k));
     x.translate(r, r);

@@ -4,23 +4,20 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <script>
-  /* Intro contract: "js" now; "splash-pending" when the intro will run (motion OK and not yet
-     seen this session, or ?intro forces it), which preloads its badge. If splash.js never
+  /* Intro contract: "js" now; "splash-pending" when the intro will run (motion OK, no Save-Data
+     or slow connection, and not yet seen this session, or ?intro forces it). If splash.js never
      arrives, a failsafe drops the black cover and starts the hero after 4.5s. */
   (function (d, w) {
     var h = d.documentElement, seen = null;
     h.classList.add("js");
     try { seen = w.sessionStorage.getItem("rvp-intro-seen"); } catch (e) {}
     try {
+      var c = w.navigator.connection;
       if (w.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (c && (c.saveData || (c.effectiveType && c.effectiveType !== "4g"))) return;
       if (seen && !/[?&]intro(?:[=&]|$)/.test(w.location.search)) return;
       h.classList.add("splash-pending");
       w.rvpSplashFailsafe = setTimeout(function () { h.classList.remove("splash-pending"); h.classList.add("is-ready"); }, 4500);
-      var px = Math.min((h.clientWidth || w.innerWidth) * .8, (h.clientHeight || w.innerHeight) * .56, 520) * Math.min(w.devicePixelRatio || 1, 2);
-      var l = d.createElement("link");
-      l.rel = "preload"; l.as = "image"; l.fetchPriority = "high";
-      l.href = "assets/img/rvph-badge-" + (px > 560 ? 1040 : 520) + ".webp";
-      d.head.appendChild(l);
     } catch (e) {}
   })(document, window);
 </script>
@@ -42,19 +39,36 @@
 <link rel="stylesheet" href="assets/css/icons.css">
 <link rel="stylesheet" href="assets/css/site.css">
 <link rel="stylesheet" href="assets/css/splash.css">
+<script>
+  /* The intro's badge, requested once the stylesheets are in (sized as in splash.js). Past 3s the
+     intro is skipped anyway (splash.js), so then drop the black cover now and fetch nothing. */
+  (function (d, w) {
+    var h = d.documentElement;
+    try {
+      if (!h.classList.contains("splash-pending")) return;
+      if (w.performance.now() > 3000) { clearTimeout(w.rvpSplashFailsafe); h.classList.remove("splash-pending"); return; }
+      var W = h.clientWidth || w.innerWidth, H = h.clientHeight || w.innerHeight;
+      var px = (H > W * 1.15 ? Math.min(W * .74, H * .37, 420) : Math.min(H * .5, W * .4, 520)) * Math.min(w.devicePixelRatio || 1, 2);
+      var l = d.createElement("link");
+      l.rel = "preload"; l.as = "image";
+      l.href = "assets/img/rvph-badge-" + (px > 700 ? 1040 : 520) + ".webp";
+      d.head.appendChild(l);
+    } catch (e) {}
+  })(document, window);
+</script>
 <script src="assets/js/splash.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
-<!-- Service ribbon: veteran owned & operated (not sticky) -->
-<div class="vet-ribbon">
+<!-- Service ribbon: veteran owned & operated (not sticky; a labelled region, so it sits in a landmark) -->
+<section class="vet-ribbon" aria-label="Veteran owned and operated">
   <p class="wrap vet-ribbon-in">
     <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
     <span>Veteran owned &amp; operated<span class="more"><span class="sep" aria-hidden="true">·</span>Est. 2021<span class="sep" aria-hidden="true">·</span>Grants Pass, Oregon</span></span>
     <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
   </p>
-</div>
+</section>
 
 <header class="site-header">
   <nav class="nav" aria-label="Main">

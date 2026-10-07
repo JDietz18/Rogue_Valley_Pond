@@ -68,8 +68,11 @@
   --gutter: clamp(16px, 4vw, 48px);
 }
 
-html { scroll-behavior: smooth; scroll-padding-top: 88px; }
-@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+html { scroll-padding-top: 88px; }
+/* smooth in-page scrolling only once the page and its fonts have settled (site.js adds html.smooth): on a cold
+   load, an animated jump to a #fragment would head for the spot the section had before the fonts swapped in */
+html.smooth { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { html.smooth { scroll-behavior: auto; } }
 body { background: #000; color: var(--rv-cream); font-family: var(--font-body); font-size: 16px; -webkit-font-smoothing: antialiased; }
 a { color: var(--rv-brass); }
 a:hover { color: var(--color-accent-2-200); }
@@ -132,7 +135,7 @@ html.splash-pending::before { content: ""; position: fixed; inset: 0; z-index: 2
   background:
     linear-gradient(90deg, rgba(0, 0, 0, .35), transparent 22%, transparent 78%, rgba(0, 0, 0, .35)),
     var(--rv-pond);
-  padding-block: 9px 13px;
+  padding-block: 9px 13px; overflow: hidden; /* never wider than the screen, even in a fallback font */
 }
 /* thin cream / red stripe edge */
 .vet-ribbon::after {
@@ -140,7 +143,7 @@ html.splash-pending::before { content: ""; position: fixed; inset: 0; z-index: 2
   background: linear-gradient(to bottom, var(--rv-cream) 0 1px, var(--rv-red) 1px 100%);
 }
 .vet-ribbon-in {
-  display: flex; align-items: center; justify-content: center; gap: 14px;
+  display: flex; align-items: center; justify-content: center; justify-content: safe center; gap: 14px;
   font-family: var(--font-stencil); font-weight: 800; font-size: 14px; line-height: 1;
   letter-spacing: .24em; text-transform: uppercase; white-space: nowrap;
 }
@@ -218,6 +221,8 @@ html.splash-pending::before { content: ""; position: fixed; inset: 0; z-index: 2
 .brand:hover { color: var(--rv-cream); }
 .brand-badge { display: block; width: auto; height: 56px; flex: none; }
 .brand-name { display: flex; flex-direction: column; gap: 4px; }
+.brand, .brand-name { min-width: 0; } /* in a wide fallback font the name clips instead of widening the page */
+.brand-name { overflow-x: clip; }
 .brand-name b {
   font-family: var(--font-display); font-weight: 800; font-size: 24px; letter-spacing: .03em;
   text-transform: uppercase; line-height: .85; white-space: nowrap;
@@ -355,10 +360,9 @@ html.splash-pending::before { content: ""; position: fixed; inset: 0; z-index: 2
   font-size: clamp(28px, 2.6vw, 36px); line-height: .95; letter-spacing: .06em; color: var(--rv-cream);
 }
 .pledge-label .star { width: .55em; height: .55em; }
-@media (max-width: 900px) {
-  .vet-top { grid-template-columns: 1fr; align-items: start; }
-  .pledges { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+@media (max-width: 900px) { .vet-top { grid-template-columns: 1fr; align-items: start; } }
+/* four across only where every label fits on one line (below ~922px "Cleaned up" would wrap) */
+@media (max-width: 960px) { .pledges { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 520px) { .pledges { grid-template-columns: 1fr; } }
 
 /* ── photo slots ──────────────────────────────────────── */
@@ -401,15 +405,19 @@ html.splash-pending::before { content: ""; position: fixed; inset: 0; z-index: 2
   content: ""; position: absolute; left: 0; top: 0; height: 3px; width: 100%; background: var(--rv-red);
   transform: scaleX(0); transform-origin: left; transition: transform .45s var(--ease-io);
 }
-.svc .h3 { font-size: 26px; transition: font-weight .4s var(--ease-out), letter-spacing .4s var(--ease-out); }
+/* the title thickens on hover with a stroke, not a heavier weight: a weight change widens it and re-wraps it */
+/* (the stroke fades in through its color, which animates; its width doesn't) */
+.svc .h3 { font-size: 26px; -webkit-text-stroke: .035em transparent; transition: -webkit-text-stroke-color .4s var(--ease-out); }
 a.svc:hover, a.svc:focus-visible { box-shadow: inset 0 0 0 1px rgba(226, 62, 57, .45); color: inherit; }
 a.svc:hover::after, a.svc:focus-visible::after { transform: scaleX(1); }
-a.svc:hover .h3, a.svc:focus-visible .h3 { font-weight: 900; letter-spacing: -.004em; }
-.svc-handy:hover .h3 { font-weight: 850; letter-spacing: 0; }
+a.svc:hover .h3, a.svc:focus-visible .h3 { -webkit-text-stroke-color: currentColor; }
+.svc-handy .h3 { -webkit-text-stroke-width: .025em; }
+.svc-handy:hover .h3 { -webkit-text-stroke-color: currentColor; }
 .svc .ico { font-size: 30px; line-height: 1; color: var(--rv-ripple); }
 .svc-handy .ico { color: var(--rv-brass); }
 .svc .more {
-  margin-top: auto; padding-top: 6px; color: var(--rv-red);
+  /* accent-400 rather than the base red: small text on the card surface needs 4.5:1 (6.3:1 here) */
+  margin-top: auto; padding-top: 6px; color: var(--color-accent-400);
   font-family: var(--font-display); font-weight: 800; font-size: 15px; letter-spacing: .1em; text-transform: uppercase;
   transition: letter-spacing .4s var(--ease-out);
 }

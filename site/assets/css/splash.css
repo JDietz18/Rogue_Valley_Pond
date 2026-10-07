@@ -1,6 +1,6 @@
-/* Rogue Valley Ponds & Handyman: landing intro. assets/js/splash.js builds the overlay and sets
-   every size; the black cover while the intro is pending lives in site.css. The overlay paints
-   its own black until it runs, so the cover can go as soon as it is in: */
+/* Rogue Valley Ponds & Handyman: landing intro. assets/js/splash.js builds the overlay and sets every
+   size. The black cover while the intro is pending is in site.css; the overlay paints its own black
+   until it runs, so the cover can go as soon as the overlay is in. */
 html.splash-pending.rvs-live::before { content: none; }
 /* the covered, inert page holds its own animations (so the hero's 5s failsafe can't fire under it) */
 html.rvs-live .vet-ribbon .star, html.rvs-live .seal-spin, html.rvs-live .hero-title .ln-in, html.rvs-live .hero-red::after,
@@ -13,17 +13,17 @@ body[data-rvs-focus]:focus { outline: none; }
 }
 .rvs.rvs-run { background: none; }
 .rvs * { box-sizing: border-box; }
-/* the wipe: a window turned to the wipe direction slides across with the three stripes on its
-   leading edge; the curtain inside counter-moves, so it stays put */
+/* the wipe window (its box set once; flat until the wipe), the curtain in it, the three stripes on its edge */
 .rvs-win { position: absolute; overflow: hidden; transform-origin: 0 50%; }
 .rvs-curtain { position: absolute; background: #000; }
 .rvs-shake, .rvs-fx { position: absolute; left: 0; top: 0; width: 100%; height: 100%; }
-.rvs-edge { position: absolute; left: 0; top: 0; height: 100%; display: flex; }
+.rvs-edge { position: absolute; left: 0; top: 0; height: 100%; display: none; }
+.rvs-wipe .rvs-edge { display: flex; }
 .rvs-edge i { background: #034764; }
 .rvs-edge i + i { background: #f9eed5; }
 .rvs-edge i + i + i { background: #e23e39; }
 
-/* behind the badge: the glow, lit water and rays (one canvas, drawn once in splash.js), the flash, the flare */
+/* behind the badge: the field (glow, lit water, rays: one canvas), the flash, the flare */
 .rvs-field, .rvs-flash, .rvs-flare { position: absolute; opacity: 0; }
 .rvs-flash { border-radius: 50%; background: radial-gradient(closest-side, #fffaf0, rgba(249, 238, 213, .85) 14%, rgba(249, 238, 213, .25) 38%, rgba(249, 238, 213, 0) 66%); }
 .rvs-flare { filter: drop-shadow(0 0 12px rgba(235, 143, 8, .5)); }
@@ -70,7 +70,9 @@ body[data-rvs-focus]:focus { outline: none; }
   display: inline-flex; align-items: center; gap: 9px; min-height: 44px; margin: 0; padding: 10px 14px 10px 16px;
   border: 1px solid rgba(226, 190, 124, .6); border-radius: 4px; background: rgba(0, 0, 0, .62); color: #f9eed5; cursor: pointer;
   font: 800 15px/1 var(--font-display); letter-spacing: .16em; text-transform: uppercase;
+  opacity: 0; transition: opacity .2s; /* shown (.rvs-armed) once its face is in, so the label doesn't reflow in view */
 }
+.rvs-armed .rvs-skip { opacity: 1; }
 .rvs-skip:hover { border-color: #e2be7c; background: #000; }
 .rvs-skip:focus-visible { outline: 2px solid #f9eed5; outline-offset: 3px; }
 .rvs-skip svg { width: 15px; height: 15px; fill: none; stroke: #e23e39; stroke-width: 2.4; stroke-linecap: square; }
