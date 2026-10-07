@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>document.documentElement.classList.add("js");</script>
 <title>Request a quote · Rogue Valley Ponds &amp; Handyman</title>
 <meta name="description" content="Tell Robert about your pond, water feature, koi or handyman job. He reads every request himself and calls back with a quote. Or call or text 541-761-6681.">
 <meta name="theme-color" content="#000000">
@@ -11,12 +12,22 @@
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600..900&amp;family=Big+Shoulders+Stencil+Display:wght@700..900&amp;display=swap">
 <link rel="stylesheet" href="assets/css/nocturne.css">
 <link rel="stylesheet" href="assets/css/icons.css">
 <link rel="stylesheet" href="assets/css/site.css">
 </head>
 <body>
 <a class="skip" href="#main">Skip to the form</a>
+
+<!-- Service ribbon: veteran owned & operated (not sticky; a labelled region, so it sits in a landmark) -->
+<section class="vet-ribbon" aria-label="Veteran owned and operated">
+  <p class="wrap vet-ribbon-in">
+    <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
+    <span>Veteran owned &amp; operated<span class="more"><span class="sep" aria-hidden="true">·</span>Est. 2021<span class="sep" aria-hidden="true">·</span>Grants Pass, Oregon</span></span>
+    <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
+  </p>
+</section>
 
 <header class="site-header">
   <nav class="nav" aria-label="Main">
@@ -39,10 +50,10 @@
 <main id="main">
   <section class="hero">
     <div class="wrap" style="display:flex;flex-direction:column;gap:clamp(28px,4vw,44px)">
-      <div class="head">
-        <span class="eyebrow">Get a quote</span>
-        <h1 class="display" style="font-size:clamp(34px,5vw,56px)">Tell Robert about the job</h1>
-        <p class="lead">He reads every request himself and calls back to talk it through. Prefer to talk now? Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>.</p>
+      <div class="head page-head">
+        <p class="vet-eyebrow"><i class="star" aria-hidden="true"></i><span>Veteran owned &amp; operated</span><i class="star" aria-hidden="true"></i></p>
+        <h1 class="display page-title enter">Tell Robert about the job</h1>
+        <p class="lead enter">He reads every request himself and calls back to talk it through. Prefer to talk now? Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>.</p>
       </div>
 
       <div class="quote-grid">
@@ -94,7 +105,7 @@
           <div class="state" id="quote-fallback" tabindex="-1" hidden>
             <span class="eyebrow" style="color:var(--rv-red)">Couldn’t send from here</span>
             <h2 class="h2">Call or text Robert instead</h2>
-            <a class="phone-link js-phone-link" href="tel:5417616681" style="font-size:28px"><span class="js-phone">541-761-6681</span></a>
+            <a class="phone-big js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>
             <p class="body">Your message is still in the form. Copy it to paste into a text.</p>
             <div class="cta-row"><button type="button" class="btn btn-primary" id="copy-request">Copy my request</button><button type="button" class="btn btn-secondary" id="fallback-back">Back to the form</button></div>
             <p class="small" id="copy-status" role="status"></p>
@@ -103,9 +114,10 @@
 
         <aside class="aside">
           <div class="panel call-card">
+            <p class="vet-line"><span class="ribbon-bar" aria-hidden="true"></span>Veteran owned &amp; operated</p>
             <span class="eyebrow">Call or text</span>
             <a class="phone-link big js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>
-            <p class="body">Veteran owned · Est. 2021 · Based in Grants Pass, serving Josephine and Jackson counties.</p>
+            <p class="body">Est. 2021 · Based in Grants Pass, serving Josephine and Jackson counties.</p>
           </div>
           <div class="panel">
             <span class="eyebrow" style="margin-bottom:14px">What happens next</span>
@@ -127,11 +139,21 @@
 <footer class="site-footer">
   <div class="wrap" style="display:block"><div class="rule"></div></div>
   <div class="wrap">
-    <a class="brand" href="index.html" style="margin-right:0" aria-label="Rogue Valley Ponds &amp; Handyman, home">
-      <img class="brand-badge" src="assets/img/rvph-badge-192.webp" srcset="assets/img/rvph-badge-64.webp 1x, assets/img/rvph-badge-128.webp 2x, assets/img/rvph-badge-192.webp 3x" width="65" height="64" alt="" loading="lazy">
-      <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
-    </a>
-    <p class="small" style="margin:0"><span>Veteran owned</span><span>Est. 2021</span><span>Grants Pass, Oregon</span><span><a href="https://www.facebook.com/profile.php?id=61560373865806" rel="noopener">Facebook</a></span></p>
+    <div class="foot-id">
+      <svg class="seal" viewBox="0 0 200 200" role="img" aria-label="Veteran owned and operated. Established 2021. Grants Pass, Oregon.">
+        <defs><path id="seal-path" d="M 22 100 A 78 78 0 1 1 178 100 A 78 78 0 1 1 22 100"/></defs>
+        <circle class="seal-disc" cx="100" cy="100" r="99"/>
+        <circle class="seal-edge" cx="100" cy="100" r="94"/>
+        <g class="seal-spin"><text class="seal-text" dy="6"><textPath href="#seal-path" textLength="486" lengthAdjust="spacing">VETERAN OWNED &amp; OPERATED · EST. 2021 · GRANTS PASS, OREGON ·</textPath></text></g>
+        <circle class="seal-core" cx="100" cy="100" r="56"/>
+        <path class="seal-star" d="M100 70 107.2 90.1 128.5 90.7 111.6 103.8 117.6 124.3 100 112.2 82.4 124.3 88.4 103.8 71.5 90.7 92.8 90.1Z"/>
+      </svg>
+      <a class="brand" href="index.html" style="margin-right:0" aria-label="Rogue Valley Ponds &amp; Handyman, home">
+        <img class="brand-badge" src="assets/img/rvph-badge-192.webp" srcset="assets/img/rvph-badge-64.webp 1x, assets/img/rvph-badge-128.webp 2x, assets/img/rvph-badge-192.webp 3x" width="65" height="64" alt="" loading="lazy">
+        <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
+      </a>
+    </div>
+    <p class="small" style="margin:0"><span>Veteran owned &amp; operated</span><span>Est. 2021</span><span>Grants Pass, Oregon</span><span><a href="https://www.facebook.com/profile.php?id=61560373865806" rel="noopener">Facebook</a></span></p>
     <p class="small" style="margin:0">© <span class="js-year">2026</span> Rogue Valley Ponds &amp; Handyman</p>
   </div>
 </footer>

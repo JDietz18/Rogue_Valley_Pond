@@ -3,6 +3,24 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<script>
+  /* Intro contract: "js" now; "splash-pending" when the intro will run (motion OK, no Save-Data
+     or slow connection, and not yet seen this session, or ?intro forces it). If splash.js never
+     arrives, a failsafe drops the black cover and starts the hero after 4.5s. */
+  (function (d, w) {
+    var h = d.documentElement, seen = null;
+    h.classList.add("js");
+    try { seen = w.sessionStorage.getItem("rvp-intro-seen"); } catch (e) {}
+    try {
+      var c = w.navigator.connection;
+      if (w.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      if (c && (c.saveData || (c.effectiveType && c.effectiveType !== "4g"))) return;
+      if (seen && !/[?&]intro(?:[=&]|$)/.test(w.location.search)) return;
+      h.classList.add("splash-pending");
+      w.rvpSplashFailsafe = setTimeout(function () { h.classList.remove("splash-pending"); h.classList.add("is-ready"); }, 4500);
+    } catch (e) {}
+  })(document, window);
+</script>
 <title>Rogue Valley Ponds &amp; Handyman · Grants Pass, Oregon</title>
 <meta name="description" content="Ponds, water features and koi, plus the home repairs that keep getting put off. Veteran owned, serving Grants Pass and the Rogue Valley since 2021. Call or text 541-761-6681.">
 <meta name="theme-color" content="#000000">
@@ -16,12 +34,41 @@
 <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600..900&amp;family=Big+Shoulders+Stencil+Display:wght@700..900&amp;display=swap">
 <link rel="stylesheet" href="assets/css/nocturne.css">
 <link rel="stylesheet" href="assets/css/icons.css">
 <link rel="stylesheet" href="assets/css/site.css">
+<link rel="stylesheet" href="assets/css/splash.css">
+<script>
+  /* The intro's badge, requested once the stylesheets are in (sized as in splash.js). Past 3s the
+     intro is skipped anyway (splash.js), so then drop the black cover now and fetch nothing. */
+  (function (d, w) {
+    var h = d.documentElement;
+    try {
+      if (!h.classList.contains("splash-pending")) return;
+      if (w.performance.now() > 3000) { clearTimeout(w.rvpSplashFailsafe); h.classList.remove("splash-pending"); return; }
+      var W = h.clientWidth || w.innerWidth, H = h.clientHeight || w.innerHeight;
+      var px = (H > W * 1.15 ? Math.min(W * .74, H * .37, 420) : Math.min(H * .5, W * .4, 520)) * Math.min(w.devicePixelRatio || 1, 2);
+      var l = d.createElement("link");
+      l.rel = "preload"; l.as = "image";
+      l.href = "assets/img/rvph-badge-" + (px > 700 ? 1040 : 520) + ".webp";
+      d.head.appendChild(l);
+    } catch (e) {}
+  })(document, window);
+</script>
+<script src="assets/js/splash.js" defer></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
+
+<!-- Service ribbon: veteran owned & operated (not sticky; a labelled region, so it sits in a landmark) -->
+<section class="vet-ribbon" aria-label="Veteran owned and operated">
+  <p class="wrap vet-ribbon-in">
+    <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
+    <span>Veteran owned &amp; operated<span class="more"><span class="sep" aria-hidden="true">·</span>Est. 2021<span class="sep" aria-hidden="true">·</span>Grants Pass, Oregon</span></span>
+    <span class="stars" aria-hidden="true"><i class="star"></i><i class="star"></i><i class="star"></i></span>
+  </p>
+</section>
 
 <header class="site-header">
   <nav class="nav" aria-label="Main">
@@ -47,14 +94,24 @@
   <section class="hero">
     <div class="wrap hero-grid">
       <div class="hero-copy">
-        <div class="tags"><span class="tag tag-accent-2">Veteran owned</span><span class="tag tag-neutral">Est. 2021</span><span class="tag tag-pond">Grants Pass &amp; the Rogue Valley</span></div>
-        <h1 class="display">Ponds, water features and koi. Repairs done right.</h1>
-        <p class="lead">Robert builds and looks after backyard ponds, water features and koi, and takes care of the repairs around the house that keep getting put off. Tell him about the job and he’ll call you back with a quote.</p>
-        <div class="cta-row">
+        <div class="hero-vet">
+          <p class="vet-eyebrow"><i class="star" aria-hidden="true"></i><span>Veteran owned &amp; operated</span><i class="star" aria-hidden="true"></i></p>
+          <p class="hero-est enter">Est. 2021<span class="sep" aria-hidden="true">·</span>Grants Pass &amp; the Rogue Valley</p>
+        </div>
+        <h1 class="display hero-title">
+          <span class="ln"><span class="ln-in">Ponds<span class="cm">,</span> water</span></span>
+          <span class="ln"><span class="ln-in">features &amp; koi.</span></span>
+          <span class="hero-red">
+            <span class="ln"><span class="ln-in">Repairs done</span></span>
+            <span class="ln"><span class="ln-in">right.</span></span>
+          </span>
+        </h1>
+        <p class="lead enter">Robert builds and looks after backyard ponds, water features and koi, and takes care of the repairs around the house that keep getting put off. Tell him about the job and he’ll call you back with a quote.</p>
+        <div class="cta-row enter">
           <a class="btn btn-primary btn-lg" href="quote.html">Get a quote <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
           <a class="btn btn-secondary btn-lg js-phone-link" href="tel:5417616681"><i class="ph ph-phone" aria-hidden="true"></i>Call or text <span class="js-phone">541-761-6681</span></a>
         </div>
-        <p class="callout"><span class="eyebrow">This month</span><span class="js-pond-now">Leaf netting and skimmer cleanouts</span></p>
+        <p class="callout enter"><span class="eyebrow">This month</span><span class="js-pond-now">Leaf netting and skimmer cleanouts</span></p>
       </div>
       <figure class="hero-badge" data-anim-logo>
         <div class="badge-stage">
@@ -63,6 +120,28 @@
         </div>
         <button class="badge-toggle" type="button" data-anim-toggle aria-pressed="true" hidden><i class="ph ph-pause" aria-hidden="true"></i><span>Pause animation</span></button>
       </figure>
+    </div>
+  </section>
+
+  <!-- Veteran owned & operated: the commitments, built only from what the site already promises -->
+  <!-- Robert to confirm: branch of service (leave out until confirmed) -->
+  <section class="section vet" id="veteran" aria-labelledby="vet-title">
+    <span class="vet-watermark" aria-hidden="true">Veteran</span>
+    <div class="wrap">
+      <div class="vet-divider" aria-hidden="true"><span class="ribbon-bar"></span></div>
+      <div class="vet-top">
+        <div class="head">
+          <span class="eyebrow">Veteran owned &amp; operated</span>
+          <h2 class="h2 vet-title" id="vet-title"><span class="ln">A veteran’s word,</span> <span class="ln red">in writing.</span></h2>
+        </div>
+        <p class="lead vet-lead">Rogue Valley Ponds &amp; Handyman is veteran owned and operated, based in Grants Pass since 2021. Robert reads every request himself and calls back to talk it through. Every job runs the same way:</p>
+      </div>
+      <ul class="pledges">
+        <li class="pledge"><span class="pledge-label"><i class="star" aria-hidden="true"></i>In writing</span><p class="body">For anything bigger than a quick fix, he looks at the job first and puts the price in writing.</p></li>
+        <li class="pledge"><span class="pledge-label"><i class="star" aria-hidden="true"></i>On time</span><p class="body">The work gets done on the day you agreed on.</p></li>
+        <li class="pledge"><span class="pledge-label"><i class="star" aria-hidden="true"></i>Done right</span><p class="body">Done once and done properly. If a job needs a licensed trade, he’ll say so.</p></li>
+        <li class="pledge"><span class="pledge-label"><i class="star" aria-hidden="true"></i>Cleaned up</span><p class="body">When the work is finished, the yard is left the way it was found.</p></li>
+      </ul>
     </div>
   </section>
 
@@ -223,9 +302,12 @@
           <div class="head">
             <span class="eyebrow">Get a quote</span>
             <h2 class="h2">Tell Robert about the job</h2>
-            <p class="lead">He reads every request himself and calls back to talk it through. Prefer to talk now? Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a>.</p>
+            <p class="lead">He reads every request himself and calls back to talk it through. Prefer to talk now? Call or text.</p>
           </div>
-          <div class="cta-row"><a class="btn btn-primary btn-lg" href="quote.html">Request a quote <i class="ph ph-arrow-right" aria-hidden="true"></i></a></div>
+          <div class="cta-row">
+            <a class="btn btn-primary btn-lg" href="quote.html">Request a quote <i class="ph ph-arrow-right" aria-hidden="true"></i></a>
+            <a class="cta-call js-phone-link" href="tel:5417616681"><small>Call or text</small><span class="phone-big js-phone">541-761-6681</span></a>
+          </div>
         </div>
         <figure class="photo cta-photo" data-slot="koi-group-dark.jpg">
           <img src="assets/photos/koi-group-dark.jpg" alt="Koi crowding the surface of a dark pond" loading="lazy">
@@ -239,11 +321,21 @@
 <footer class="site-footer">
   <div class="wrap" style="display:block"><div class="rule"></div></div>
   <div class="wrap">
-    <a class="brand" href="index.html" style="margin-right:0" aria-label="Rogue Valley Ponds &amp; Handyman, home">
-      <img class="brand-badge" src="assets/img/rvph-badge-192.webp" srcset="assets/img/rvph-badge-64.webp 1x, assets/img/rvph-badge-128.webp 2x, assets/img/rvph-badge-192.webp 3x" width="65" height="64" alt="" loading="lazy">
-      <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
-    </a>
-    <p class="small" style="margin:0"><span>Veteran owned</span><span>Est. 2021</span><span>Grants Pass, Oregon</span><span>Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a></span><span><a href="https://www.facebook.com/profile.php?id=61560373865806" rel="noopener">Facebook</a></span></p>
+    <div class="foot-id">
+      <svg class="seal" viewBox="0 0 200 200" role="img" aria-label="Veteran owned and operated. Established 2021. Grants Pass, Oregon.">
+        <defs><path id="seal-path" d="M 22 100 A 78 78 0 1 1 178 100 A 78 78 0 1 1 22 100"/></defs>
+        <circle class="seal-disc" cx="100" cy="100" r="99"/>
+        <circle class="seal-edge" cx="100" cy="100" r="94"/>
+        <g class="seal-spin"><text class="seal-text" dy="6"><textPath href="#seal-path" textLength="486" lengthAdjust="spacing">VETERAN OWNED &amp; OPERATED · EST. 2021 · GRANTS PASS, OREGON ·</textPath></text></g>
+        <circle class="seal-core" cx="100" cy="100" r="56"/>
+        <path class="seal-star" d="M100 70 107.2 90.1 128.5 90.7 111.6 103.8 117.6 124.3 100 112.2 82.4 124.3 88.4 103.8 71.5 90.7 92.8 90.1Z"/>
+      </svg>
+      <a class="brand" href="index.html" style="margin-right:0" aria-label="Rogue Valley Ponds &amp; Handyman, home">
+        <img class="brand-badge" src="assets/img/rvph-badge-192.webp" srcset="assets/img/rvph-badge-64.webp 1x, assets/img/rvph-badge-128.webp 2x, assets/img/rvph-badge-192.webp 3x" width="65" height="64" alt="" loading="lazy">
+        <span class="brand-name"><b>Rogue Valley</b><small>Ponds &amp; Handyman</small></span>
+      </a>
+    </div>
+    <p class="small" style="margin:0"><span>Veteran owned &amp; operated</span><span>Est. 2021</span><span>Grants Pass, Oregon</span><span>Call or text <a class="phone-link js-phone-link" href="tel:5417616681"><span class="js-phone">541-761-6681</span></a></span><span><a href="https://www.facebook.com/profile.php?id=61560373865806" rel="noopener">Facebook</a></span></p>
     <p class="small" style="margin:0">© <span class="js-year">2026</span> Rogue Valley Ponds &amp; Handyman</p>
   </div>
 </footer>

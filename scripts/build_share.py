@@ -3,7 +3,8 @@
 Every local stylesheet, script and image in site/ is inlined (images as data: URIs),
 so the file opens straight from a phone or computer, or can be attached or uploaded
 as a single page. The Google Fonts stylesheet stays a link (it falls back to system
-fonts offline).
+fonts offline). The landing intro (splash.css / splash.js and the inline <head>
+script that starts it) stays out: the single file is static, its hero shown at rest.
 
     python3 scripts/build_share.py                 # -> share/rogue-valley-ponds.html
     python3 scripts/build_share.py --fragment OUT  # page body only, for hosts that add their own <head>
@@ -33,7 +34,8 @@ def build():
     title = re.search(r"<title>(.*?)</title>", head).group(1)
     meta = "\n".join(re.findall(r'<meta (?:name="description"|property="og:[^"]+")[^>]*>', head))
     meta += f'\n<link rel="icon" href="{data_uri(re.search(r"<link rel=\"icon\" href=\"([^\"]+)\"", head).group(1))}">'
-    links = re.findall(r'<link rel="stylesheet" href="([^"]+)">', head)
+    # every stylesheet except the intro's (its script and the <head> script that starts it are left out too)
+    links = [h for h in re.findall(r'<link rel="stylesheet" href="([^"]+)">', head) if "splash" not in h]
     fonts = "\n".join(f'<link rel="stylesheet" href="{h}">' for h in links if h.startswith("https://"))
     def inline_css(h: str) -> str:
         css = (SITE / h).read_text()
@@ -42,8 +44,8 @@ def build():
         return f"<style>\n{css}\n</style>"
     styles = "\n".join(inline_css(h) for h in links if not h.startswith("https://"))
     # Scripts go at the end of the body, in order, so the DOM exists when they run.
-    srcs = re.findall(r'<script src="([^"]+)"></script>', html)
-    body = re.sub(r'\s*<script src="[^"]+"></script>', "", body)
+    srcs = [s for s in re.findall(r'<script src="([^"]+)"[^>]*></script>', body) if "splash" not in s]
+    body = re.sub(r'\s*<script src="[^"]+"[^>]*></script>', "", body)
     scripts = "\n".join(f"<script>\n{(SITE / s).read_text()}\n</script>" for s in srcs)
     body = re.sub(r'(<img[^>]*?\ssrc=")(assets/[^"]+)"', lambda m: f'{m.group(1)}{data_uri(m.group(2))}"', body)
     # srcset variants and the animated badge's video stay out of the single file: the
@@ -61,7 +63,8 @@ def main() -> None:
     title, meta, styles, body = build()
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(
-        '<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+        # no "js" class (nothing waits to animate in) and "is-ready" set: the hero is simply there
+        '<!DOCTYPE html>\n<html lang="en" class="is-ready">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">\n'
         f"<title>{title}</title>\n{meta}\n{styles}\n</head>\n<body>\n{body}\n</body>\n</html>\n"
     )
